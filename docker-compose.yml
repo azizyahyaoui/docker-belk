@@ -1,65 +1,52 @@
 version: '2'
+networks:
+  belk:
+    driver: bridge
 
 services:
+  filebeat:
+    build: application/filebeat/
+    volumes:
+      - ./configuration/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    networks:
+      - belk
+    depends_on:
+      - logstash
+
+  logstash:
+    build: application/logstash/
+    volumes:
+      - ./configuration/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./configuration/logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5000:5000"
+      - "5044:5044"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - belk
+    depends_on:
+      - elasticsearch
 
   elasticsearch:
-    build: elasticsearch/
+    build: application/elasticsearch/
     volumes:
-      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./configuration/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
       - "9200:9200"
       - "9300:9300"
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - brelk
-
-  logstash:
-    build: logstash/
-    volumes:
-      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-    ports:
-      - "5000:5000"
-    environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
-    networks:
-      - brelk
-    depends_on:
-      - elasticsearch
-      - redis
+      - belk
 
   kibana:
-    build: kibana/
+    build: application/kibana/
     volumes:
-      - ./kibana/config/:/usr/share/kibana/config
+      - ./configuration/kibana/:/usr/share/kibana/config
     ports:
       - "5601:5601"
     networks:
-      - brelk
+      - belk
     depends_on:
       - elasticsearch
-
-  redis:
-    build: redis/
-    volumes:
-      - ./redis/config/:/usr/local/etc/redis:ro
-      - ./redis/data/redis:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - brelk
-
-  filebeat:
-    build: filebeat/
-    volumes:
-      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
-    networks:
-      - brelk
-    depends_on:
-      - redis
-
-networks:
-
-  brelk:
-    driver: bridge

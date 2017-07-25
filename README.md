@@ -1,8 +1,8 @@
-# Docker BRELK stack
+# Docker BELK stack
 
 Project forked from [docker-elk](https://github.com/deviantony/docker-elk).
 
-Run the latest version of the BRELK (Elasticsearch, Logstash, Kibana, Redis, Beats) stack with Docker and Docker Compose.
+Run the latest version of the BELK (Elasticsearch, Logstash, Kibana, Beats) stack with Docker and Docker Compose.
 
 It will give you the ability to analyze any data set by using the searching/aggregation capabilities of Elasticsearch
 and the visualization power of Kibana.
@@ -12,7 +12,6 @@ Based on the official Docker images:
 * [elasticsearch](https://github.com/elastic/elasticsearch-docker)
 * [logstash](https://github.com/elastic/logstash-docker)
 * [kibana](https://github.com/elastic/kibana-docker)
-* [redis](https://github.com/docker-library/redis/)
 * [filebeat](https://github.com/elastic/beats-docker)
 
 
@@ -29,13 +28,11 @@ Based on the official Docker images:
    * [How can I tune the Logstash configuration?](#how-can-i-tune-the-logstash-configuration)
    * [How can I tune the Elasticsearch configuration?](#how-can-i-tune-the-elasticsearch-configuration)
    * [How can I scale out the Elasticsearch cluster?](#how-can-i-scale-up-the-elasticsearch-cluster)
-   * [How can I tune the Redis configuration?](#how-can-i-tune-the-redis-configuration)
    * [How can I tune the Beats configuration?](#how-can-i-tune-the-beats-configuration)
 4. [Storage](#storage)
    * [How can I persist Elasticsearch data?](#how-can-i-persist-elasticsearch-data)
 5. [Extensibility](#extensibility)
    * [How can I add plugins?](#how-can-i-add-plugins)
-   * [How can I enable the provided extensions?](#how-can-i-enable-the-provided-extensions)
 6. [JVM tuning](#jvm-tuning)
    * [How can I specify the amount of memory used by a service?](#how-can-i-specify-the-amount-of-memory-used-by-a-service)
    * [How can I enable a remote JMX connection to a service?](#how-can-i-enable-a-remote-jmx-connection-to-a-service)
@@ -52,18 +49,18 @@ Based on the official Docker images:
 ### SELinux
 
 On distributions which have SELinux enabled out-of-the-box you will need to either re-context the files or set SELinux
-into Permissive mode in order for docker-brelk to start properly. For example on Redhat and CentOS, the following will
+into Permissive mode in order for docker-belk to start properly. For example on Redhat and CentOS, the following will
 apply the proper context:
 
 ```bash
-$ chcon -R system_u:object_r:admin_home_t:s0 docker-brelk/
+$ chcon -R system_u:object_r:admin_home_t:s0 docker-belk/
 ```
 
 ## Usage
 
 ### Bringing up the stack
 
-Start the BRELK stack using `docker-compose`:
+Start the BELK stack using `docker-compose`:
 
 ```bash
 $ docker-compose up
@@ -163,10 +160,6 @@ elasticsearch:
     cluster.name: "my-cluster"
 ```
 
-### How can I tune the Redis configuration?
-
-TODO
-
 ### How can I tune the Beats configuration?
 
 TODO
@@ -207,19 +200,11 @@ This will store Elasticsearch data inside `/path/to/storage`.
 
 ### How can I add plugins?
 
-To add plugins to any BRELK component you have to:
+To add plugins to any BELK component you have to:
 
 1. Add a `RUN` statement to the corresponding `Dockerfile` (eg. `RUN logstash-plugin install logstash-filter-json`)
 2. Add the associated plugin code configuration to the service configuration (eg. Logstash input/output)
 3. Rebuild the images using the `docker-compose build` command
-
-### How can I enable the provided extensions?
-
-A few extensions are available inside the [`extensions`](extensions) directory. These extensions provide features which
-are not part of the standard Elastic stack, but can be used to enrich it with extra integrations.
-
-The documentation for these extensions is provided inside each individual subdirectory, on a per-extension basis. Some
-of them require manual changes to the default BRELK configuration.
 
 ## JVM tuning
 
@@ -272,18 +257,12 @@ Once we have all the containers up and running we can use the following commands
 
 Creates logs on the filebeat container:
 ```sh
-docker exec -it dockerbrelk_filebeat_1 bash -c "echo 'aaaa' >> /var/log/testing_brelk.log"
-```
-
-Checks redis has the new key inserted:
-```sh
-docker exec -it dockerbrelk_redis_1 redis-cli --scan --pattern '*'
-docker exec -it dockerbrelk_redis_1 redis-cli --bigkeys
+docker exec -it dockerbelk_filebeat_1 bash -c "echo 'some logs..' >> /var/log/testing_belk.log"
 ```
 
 Checks logstash is processing data:
 ```sh
-docker logs -ft dockerbrelk_logstash_1 2>&1 message
+docker logs -ft dockerbelk_logstash_1 2>&1 message
 ```
 
 Finally, we should check Kibana on http://0.0.0.0:5601/
