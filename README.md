@@ -1,8 +1,8 @@
-# Docker ELK stack
+# Docker BRELK stack
 
-[![Join the chat at https://gitter.im/deviantony/docker-elk](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deviantony/docker-elk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Elastic Stack version](https://img.shields.io/badge/ELK-5.5.0-blue.svg?style=flat)](https://github.com/deviantony/docker-elk/issues/146)
+Project forked from [docker-elk](https://github.com/deviantony/docker-elk).
 
-Run the latest version of the ELK (Elasticsearch, Logstash, Kibana) stack with Docker and Docker Compose.
+Run the latest version of the BRELK (Elasticsearch, Logstash, Kibana, Redis, Beats) stack with Docker and Docker Compose.
 
 It will give you the ability to analyze any data set by using the searching/aggregation capabilities of Elasticsearch
 and the visualization power of Kibana.
@@ -12,12 +12,9 @@ Based on the official Docker images:
 * [elasticsearch](https://github.com/elastic/elasticsearch-docker)
 * [logstash](https://github.com/elastic/logstash-docker)
 * [kibana](https://github.com/elastic/kibana-docker)
+* [redis](https://github.com/docker-library/redis/)
+* [filebeat](https://github.com/elastic/beats-docker)
 
-**Note**: Other branches in this project are available:
-
-* ELK 5 with X-Pack support: https://github.com/deviantony/docker-elk/tree/x-pack
-* ELK 5 in Vagrant: https://github.com/deviantony/docker-elk/tree/vagrant
-* ELK 5 with Search Guard: https://github.com/deviantony/docker-elk/tree/searchguard
 
 ## Contents
 
@@ -32,6 +29,8 @@ Based on the official Docker images:
    * [How can I tune the Logstash configuration?](#how-can-i-tune-the-logstash-configuration)
    * [How can I tune the Elasticsearch configuration?](#how-can-i-tune-the-elasticsearch-configuration)
    * [How can I scale out the Elasticsearch cluster?](#how-can-i-scale-up-the-elasticsearch-cluster)
+   * [How can I tune the Redis configuration?](#how-can-i-tune-the-redis-configuration)
+   * [How can I tune the Beats configuration?](#how-can-i-tune-the-beats-configuration)
 4. [Storage](#storage)
    * [How can I persist Elasticsearch data?](#how-can-i-persist-elasticsearch-data)
 5. [Extensibility](#extensibility)
@@ -40,6 +39,7 @@ Based on the official Docker images:
 6. [JVM tuning](#jvm-tuning)
    * [How can I specify the amount of memory used by a service?](#how-can-i-specify-the-amount-of-memory-used-by-a-service)
    * [How can I enable a remote JMX connection to a service?](#how-can-i-enable-a-remote-jmx-connection-to-a-service)
+7. [E2E debugging](#e2e-debugging)
 
 ## Requirements
 
@@ -52,18 +52,18 @@ Based on the official Docker images:
 ### SELinux
 
 On distributions which have SELinux enabled out-of-the-box you will need to either re-context the files or set SELinux
-into Permissive mode in order for docker-elk to start properly. For example on Redhat and CentOS, the following will
+into Permissive mode in order for docker-brelk to start properly. For example on Redhat and CentOS, the following will
 apply the proper context:
 
 ```bash
-$ chcon -R system_u:object_r:admin_home_t:s0 docker-elk/
+$ chcon -R system_u:object_r:admin_home_t:s0 docker-brelk/
 ```
 
 ## Usage
 
 ### Bringing up the stack
 
-Start the ELK stack using `docker-compose`:
+Start the BRELK stack using `docker-compose`:
 
 ```bash
 $ docker-compose up
@@ -163,6 +163,14 @@ elasticsearch:
     cluster.name: "my-cluster"
 ```
 
+### How can I tune the Redis configuration?
+
+TODO
+
+### How can I tune the Beats configuration?
+
+TODO
+
 ### How can I scale out the Elasticsearch cluster?
 
 Follow the instructions from the Wiki: [Scaling out
@@ -199,7 +207,7 @@ This will store Elasticsearch data inside `/path/to/storage`.
 
 ### How can I add plugins?
 
-To add plugins to any ELK component you have to:
+To add plugins to any BRELK component you have to:
 
 1. Add a `RUN` statement to the corresponding `Dockerfile` (eg. `RUN logstash-plugin install logstash-filter-json`)
 2. Add the associated plugin code configuration to the service configuration (eg. Logstash input/output)
@@ -211,7 +219,7 @@ A few extensions are available inside the [`extensions`](extensions) directory. 
 are not part of the standard Elastic stack, but can be used to enrich it with extra integrations.
 
 The documentation for these extensions is provided inside each individual subdirectory, on a per-extension basis. Some
-of them require manual changes to the default ELK configuration.
+of them require manual changes to the default BRELK configuration.
 
 ## JVM tuning
 
@@ -257,3 +265,25 @@ logstash:
   environment:
     LS_JAVA_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=18080 -Dcom.sun.management.jmxremote.rmi.port=18080 -Djava.rmi.server.hostname=DOCKER_HOST_IP -Dcom.sun.management.jmxremote.local.only=false"
 ```
+
+## E2E debugging
+
+Once we have all the containers up and running we can use the following commands to do various checks:
+
+Creates logs on the filebeat container:
+```sh
+docker exec -it dockerbrelk_filebeat_1 bash -c "echo 'aaaa' >> /var/log/testing_brelk.log"
+```
+
+Checks redis has the new key inserted:
+```sh
+docker exec -it dockerbrelk_redis_1 redis-cli --scan --pattern '*'
+docker exec -it dockerbrelk_redis_1 redis-cli --bigkeys
+```
+
+Checks logstash is processing data:
+```sh
+docker logs -ft dockerbrelk_logstash_1 2>&1 message
+```
+
+Finally, we should check Kibana on http://0.0.0.0:5601/

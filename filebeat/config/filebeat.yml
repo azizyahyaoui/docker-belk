@@ -1,0 +1,10 @@
+filebeat.prospectors:
+- type: log
+  paths:
+    - /var/log/*.log
+
+output.redis:
+  hosts: ["redis"]
+  key: "testing_key"
+  db: 0
+  timeout: 5

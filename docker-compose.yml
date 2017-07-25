@@ -12,7 +12,7 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - elk
+      - brelk
 
   logstash:
     build: logstash/
@@ -24,9 +24,10 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - elk
+      - brelk
     depends_on:
       - elasticsearch
+      - redis
 
   kibana:
     build: kibana/
@@ -35,11 +36,30 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - elk
+      - brelk
     depends_on:
       - elasticsearch
 
+  redis:
+    build: redis/
+    volumes:
+      - ./redis/config/:/usr/local/etc/redis:ro
+      - ./redis/data/redis:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - brelk
+
+  filebeat:
+    build: filebeat/
+    volumes:
+      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    networks:
+      - brelk
+    depends_on:
+      - redis
+
 networks:
 
-  elk:
+  brelk:
     driver: bridge

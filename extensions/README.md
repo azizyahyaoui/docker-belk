@@ -1,1 +1,1 @@
-Third-party extensions that enable extra integrations with the ELK stack.
+Third-party extensions that enable extra integrations with the BRELK stack.
