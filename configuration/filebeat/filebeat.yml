@@ -5,4 +5,5 @@ filebeat.prospectors:
 
 output.logstash:
   hosts: ["logstash:5044"]
-
+  ssl:
+    certificate_authorities: ["/etc/ssl/server/logstash.crt"]
