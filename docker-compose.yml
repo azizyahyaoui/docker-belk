@@ -6,8 +6,9 @@ networks:
 services:
   filebeat:
     build: application/filebeat/
+    command: filebeat -e -strict.perms=false
     volumes:
-      - ./configuration/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./configuration/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./ssl_tool:/etc/ssl:ro
     networks:
       - belk
